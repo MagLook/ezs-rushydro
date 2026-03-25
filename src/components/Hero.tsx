@@ -11,13 +11,13 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="font-headline text-[3rem] sm:text-[4rem] lg:text-[4.5rem] leading-[1.05]
+            className="font-headline text-[2rem] sm:text-[3rem] lg:text-[4rem] leading-[1.1]
               tracking-tighter mb-8 dark:text-white text-on-surface"
           >
             Заряжаем{" "}
             <span className="text-secondary dark:text-blue-400 italic">Россию</span>
             <br />
-            От Калининграда до Владивостока
+            <span className="text-[0.65em]">От Калининграда до Владивостока</span>
           </motion.h1>
 
           <motion.p

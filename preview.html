@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ЭЗС РусГидро — Федеральная сеть электрозарядных станций</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700;800&family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Unbounded"', 'sans-serif'],
+            body: ['"Onest"', 'sans-serif'],
+          },
+          colors: {
+            'rh-blue': '#1E4D8C',
+            'rh-blue-light': '#2B6CB0',
+            'rh-orange': '#E88A1A',
+            'rh-heading': '#1A2A40',
+            'rh-body': '#556575',
+            'rh-muted': '#8896A4',
+            'dark-bg': '#0B1120',
+            'dark-card': '#15202E',
+            'dark-surface': '#1C2A3A',
+            'dark-border': '#263548',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: "Onest", sans-serif; -webkit-font-smoothing: antialiased; }
+    ::selection { background: rgba(30, 77, 140, 0.3); color: white; }
+  </style>
+
+  <!-- React 18 UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Framer Motion -->
+  <script src="https://unpkg.com/framer-motion@11.18.0/dist/framer-motion.js"></script>
+
+  <!-- Lucide React (UMD) -->
+  <script src="https://unpkg.com/lucide-react@0.468.0/dist/umd/lucide-react.min.js"></script>
+
+  <!-- Babel standalone for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="dark:bg-dark-bg bg-white dark:text-gray-200 text-rh-body font-body antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useEffect, useRef, createContext, useContext } = React;
+    const { motion, AnimatePresence, useInView } = window["framer-motion"] || {};
+
+    // Lucide icons
+    const {
+      Zap, Phone, MessageCircle, Menu, X, ArrowRight, MapPin, Clock,
+      Cable, ShieldCheck, List, Smartphone, Navigation, CreditCard,
+      Play, CheckCircle, Gift, TrendingUp, Users, Building2, FileText,
+      Headphones, MapPinPlus, Wrench, BarChart3, Fuel, Sun, Moon, Mail
+    } = window.lucideReact || {};
+
+    // ===================== Theme Context =====================
+    const ThemeContext = createContext({ theme: 'dark', setTheme: () => {} });
+
+    function ThemeProvider({ children }) {
+      const [theme, setTheme] = useState('dark');
+
+      useEffect(() => {
+        const saved = localStorage.getItem('rh-theme');
+        if (saved) {
+          setTheme(saved);
+        }
+      }, []);
+
+      useEffect(() => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('rh-theme', theme);
+      }, [theme]);
+
+      return (
+        <ThemeContext.Provider value={{ theme, setTheme }}>
+          {children}
+        </ThemeContext.Provider>
+      );
+    }
+
+    function useTheme() {
+      return useContext(ThemeContext);
+    }
+
+    // ===================== ThemeToggle =====================
+    function ThemeToggle() {
+      const { theme, setTheme } = useTheme();
+
+      return (
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors
+            dark:hover:bg-white/10 hover:bg-gray-100"
+          aria-label="Переключить тему"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-[18px] h-[18px] text-amber-400" />
+          ) : (
+            <Moon className="w-[18px] h-[18px] text-rh-blue" />
+          )}
+        </button>
+      );
+    }
+
+    // ===================== Header =====================
+    const nav = [
+      { label: "Сеть ЭЗС", href: "#map" },
+      { label: "Автомобилистам", href: "#drivers" },
+      { label: "Бизнесу", href: "#corporate" },
+      { label: "Электроклуб", href: "#electroclub" },
+      { label: "Новости", href: "#news" },
+      { label: "Контакты", href: "#contacts" },
+    ];
+
+    function Header() {
+      const [open, setOpen] = useState(false);
+
+      return (
+        <header className="fixed top-0 inset-x-0 z-50
+          dark:bg-dark-bg/80 bg-white/80 backdrop-blur-md
+          border-b dark:border-dark-border border-gray-100">
+
+          {/* Top accent bar */}
+          <div className="h-1 bg-gradient-to-r from-rh-blue via-rh-blue-light to-rh-orange" />
+
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            {/* Logo */}
+            <a href="/" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-rh-blue flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" fill="currentColor" />
+              </div>
+              <div className="leading-none">
+                <div className="font-display font-bold text-base dark:text-white text-rh-heading">
+                  ЭЗС РусГидро
+                </div>
+              </div>
+            </a>
+
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {nav.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                    dark:text-gray-400 dark:hover:text-white
+                    text-rh-body hover:text-rh-heading hover:bg-gray-50 dark:hover:bg-white/5"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+
+            {/* Right */}
+            <div className="flex items-center gap-1.5">
+              <a href="https://t.me/ezsrushydro" target="_blank" rel="noopener noreferrer"
+                className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center
+                  hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                aria-label="Telegram">
+                <MessageCircle className="w-[18px] h-[18px] dark:text-gray-400 text-rh-muted" />
+              </a>
+              <a href="tel:88002221832"
+                className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium
+                  dark:text-gray-300 text-rh-blue hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                <Phone className="w-4 h-4" />
+                8 (800) 222-18-32
+              </a>
+              <ThemeToggle />
+              <button onClick={() => setOpen(!open)}
+                className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center
+                  hover:bg-gray-100 dark:hover:bg-white/10"
+                aria-label="Меню">
+                {open
+                  ? <X className="w-5 h-5 dark:text-white text-rh-heading" />
+                  : <Menu className="w-5 h-5 dark:text-white text-rh-heading" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile */}
+          <AnimatePresence>
+            {open && (
+              <motion.nav
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="lg:hidden overflow-hidden border-t dark:border-dark-border border-gray-100
+                  dark:bg-dark-bg bg-white"
+              >
+                <div className="px-6 py-4 space-y-1">
+                  {nav.map((item) => (
+                    <a key={item.href} href={item.href} onClick={() => setOpen(false)}
+                      className="block px-3 py-2.5 rounded-lg text-base font-medium
+                        dark:text-gray-300 text-rh-body hover:bg-gray-50 dark:hover:bg-white/5">
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              </motion.nav>
+            )}
+          </AnimatePresence>
+        </header>
+      );
+    }
+
+    // ===================== Hero =====================
+    const heroStats = [
+      { icon: Zap, value: "400+", label: "станций" },
+      { icon: MapPin, value: "40+", label: "регионов" },
+      { icon: Clock, value: "10 мин", label: "быстрая зарядка" },
+    ];
+
+    function Hero() {
+      return (
+        <section className="pt-28 pb-20 sm:pt-36 sm:pb-28">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-3xl">
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-sm font-semibold uppercase tracking-wider mb-4
+                  text-rh-orange dark:text-amber-400"
+              >
+                Федеральная сеть зарядных станций
+              </motion.p>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="font-display font-bold text-4xl sm:text-5xl lg:text-[3.5rem]
+                  leading-[1.15] mb-6 dark:text-white text-rh-heading"
+              >
+                Заряжаем Россию
+                <br />
+                <span className="text-rh-blue dark:text-blue-400">от Москвы до Владивостока</span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl
+                  dark:text-gray-400 text-rh-body"
+              >
+                Крупнейшая в России сеть быстрых электрозарядных станций.
+                Зарядка, топливо, программа лояльности — всё в одном приложении.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-wrap gap-3"
+              >
+                <a href="#map"
+                  className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl
+                    bg-rh-blue text-white font-semibold text-[15px]
+                    hover:bg-rh-blue-light transition-colors">
+                  Найти станцию
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+                <a href="#drivers"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl
+                    font-semibold text-[15px] transition-colors
+                    dark:text-white dark:border-dark-border dark:hover:bg-white/5
+                    text-rh-heading border border-gray-200 hover:bg-gray-50">
+                  Скачать приложение
+                </a>
+              </motion.div>
+            </div>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="mt-16 flex flex-wrap gap-8 sm:gap-14"
+            >
+              {heroStats.map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center
+                      dark:bg-white/5 bg-rh-blue/5">
+                      <Icon className="w-5 h-5 dark:text-blue-400 text-rh-blue" />
+                    </div>
+                    <div>
+                      <div className="font-display font-bold text-xl dark:text-white text-rh-heading">
+                        {s.value}
+                      </div>
+                      <div className="text-sm dark:text-gray-500 text-rh-muted">{s.label}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </motion.div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== Advantages =====================
+    const advantageItems = [
+      { icon: Zap, title: "Быстрая зарядка", text: "Подзарядка за 10 минут, полная зарядка за 30 минут. Мощность до 150 кВт." },
+      { icon: Cable, title: "Все стандарты", text: "CCS2, CHAdeMO, Type 2 — подходит для любого электромобиля." },
+      { icon: MapPin, title: "Удобные локации", text: "На АЗС, парковках ТРЦ и ключевых магистралях по всей России." },
+      { icon: ShieldCheck, title: "Безопасность", text: "Международные стандарты безопасности. Круглосуточная поддержка." },
+    ];
+
+    function Advantages() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="advantages" className="py-20 dark:bg-dark-card/50 bg-gray-50" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              className="font-display font-bold text-2xl sm:text-3xl mb-12 dark:text-white text-rh-heading"
+            >
+              Почему ЭЗС РусГидро
+            </motion.h2>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {advantageItems.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: i * 0.08 }}
+                    className="p-6 rounded-2xl transition-colors
+                      dark:bg-dark-surface dark:hover:bg-dark-border/50
+                      bg-white hover:bg-white shadow-sm dark:shadow-none"
+                  >
+                    <div className="w-10 h-10 rounded-lg mb-4 flex items-center justify-center
+                      dark:bg-blue-500/10 bg-rh-blue/[0.08]">
+                      <Icon className="w-5 h-5 dark:text-blue-400 text-rh-blue" />
+                    </div>
+                    <h3 className="font-display font-semibold text-base mb-2
+                      dark:text-white text-rh-heading">{item.title}</h3>
+                    <p className="text-sm leading-relaxed dark:text-gray-400 text-rh-body">
+                      {item.text}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== StationMap =====================
+    const cities = [
+      "Москва", "Санкт-Петербург", "Владивосток", "Иркутск",
+      "Красноярск", "Новосибирск", "Екатеринбург", "Самара",
+      "Омск", "Благовещенск", "Южно-Сахалинск", "Артём",
+      "Уссурийск", "Хабаровск", "Воронеж", "Уфа",
+      "Казань", "Пермь", "Тюмень", "Нижний Новгород",
+    ];
+
+    const coords = [
+      [55.7558, 37.6173, "Москва"], [59.9343, 30.3351, "Санкт-Петербург"],
+      [43.1332, 131.9113, "Владивосток"], [52.2978, 104.2964, "Иркутск"],
+      [56.0184, 92.8672, "Красноярск"], [55.0084, 82.9357, "Новосибирск"],
+      [56.8389, 60.6057, "Екатеринбург"], [53.1959, 50.1002, "Самара"],
+      [54.9885, 73.3242, "Омск"], [50.2907, 127.5272, "Благовещенск"],
+      [46.9651, 142.738, "Южно-Сахалинск"], [43.3257, 132.0935, "Артём"],
+      [43.8015, 131.9468, "Уссурийск"], [48.4802, 135.0719, "Хабаровск"],
+      [51.6609, 39.2003, "Воронеж"], [54.7388, 55.9721, "Уфа"],
+      [55.7879, 49.1233, "Казань"], [58.0105, 56.2502, "Пермь"],
+      [57.1553, 65.5419, "Тюмень"], [56.3287, 44.002, "Нижний Новгород"],
+    ];
+
+    function StationMap() {
+      const ref = useRef(null);
+      const mapRef = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-50px" });
+      const [view, setView] = useState("map");
+      const mapInitRef = useRef(false);
+
+      useEffect(() => {
+        if (!inView || view !== "map" || mapInitRef.current) return;
+        mapInitRef.current = true;
+
+        const script = document.createElement("script");
+        script.src = "https://api-maps.yandex.ru/2.1/?apikey=demo&lang=ru_RU";
+        script.async = true;
+        script.onload = () => {
+          window.ymaps.ready(() => {
+            if (!mapRef.current) return;
+            const map = new window.ymaps.Map(mapRef.current, {
+              center: [55.76, 70.0], zoom: 4, controls: ["zoomControl"],
+            }, { suppressMapOpenBlock: true });
+
+            const clusterer = new window.ymaps.Clusterer({
+              preset: "islands#blueClusterIcons",
+              clusterDisableClickZoom: false,
+            });
+            const marks = coords.map(([lat, lng, name]) =>
+              new window.ymaps.Placemark([lat, lng], {
+                balloonContentHeader: "<b>ЭЗС " + name + "</b>",
+                balloonContentBody: "CCS2 / CHAdeMO / Type2<br/>до 150 кВт",
+                hintContent: "ЭЗС " + name,
+              }, { preset: "islands#blueDotIcon" })
+            );
+            clusterer.add(marks);
+            map.geoObjects.add(clusterer);
+          });
+        };
+        document.head.appendChild(script);
+      }, [inView, view]);
+
+      return (
+        <section id="map" className="py-20" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+              <div>
+                <motion.h2
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  className="font-display font-bold text-2xl sm:text-3xl dark:text-white text-rh-heading"
+                >
+                  Сеть станций
+                </motion.h2>
+                <p className="mt-1 dark:text-gray-400 text-rh-body">
+                  400+ станций в 40+ регионах России
+                </p>
+              </div>
+              <div className="flex rounded-lg overflow-hidden border dark:border-dark-border border-gray-200">
+                {["map", "list"].map((m) => (
+                  <button key={m} onClick={() => setView(m)}
+                    className={`px-4 py-2 text-sm font-medium flex items-center gap-1.5 transition-colors
+                      ${view === m
+                        ? "bg-rh-blue text-white dark:bg-blue-600"
+                        : "dark:text-gray-400 text-rh-body hover:bg-gray-50 dark:hover:bg-white/5"}`}>
+                    {m === "map" ? <MapPin className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+                    {m === "map" ? "Карта" : "Список"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border dark:border-dark-border border-gray-200
+              dark:bg-dark-card bg-white">
+              {view === "map" ? (
+                <div ref={mapRef} className="w-full h-[480px] sm:h-[560px]" />
+              ) : (
+                <div className="p-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[560px] overflow-y-auto">
+                  {cities.map((city, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors
+                      dark:hover:bg-white/5 hover:bg-gray-50 cursor-pointer">
+                      <MapPin className="w-4 h-4 dark:text-blue-400 text-rh-blue flex-shrink-0" />
+                      <div>
+                        <div className="font-medium text-sm dark:text-white text-rh-heading">{city}</div>
+                        <div className="text-xs dark:text-gray-500 text-rh-muted">CCS2 / CHAdeMO / Type2</div>
+                      </div>
+                      <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== HowToCharge =====================
+    const steps = [
+      { icon: Smartphone, title: "Скачайте приложение", desc: "Установите ЭЗС РусГидро или используйте RFID-карту" },
+      { icon: Navigation, title: "Найдите станцию", desc: "Выберите свободную ЭЗС на карте" },
+      { icon: CreditCard, title: "Оплатите", desc: "Привяжите карту, резерв — 300 руб." },
+      { icon: Cable, title: "Подключите", desc: "CCS2, CHAdeMO или Type 2" },
+      { icon: Play, title: "Зарядка", desc: "Запустите сессию в приложении" },
+      { icon: CheckCircle, title: "Готово", desc: "Отключите кабель и продолжайте путь" },
+    ];
+
+    const stores = [
+      { name: "Google Play", href: "https://play.google.com/store/apps/details?id=ru.rushydro.car" },
+      { name: "App Store", href: "https://apps.apple.com/ru/app/%D1%8D%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%B7%D0%B0%D1%80%D1%8F%D0%B4%D0%BD%D1%8B%D0%B5-%D1%81%D1%82%D0%B0%D0%BD%D1%86%D0%B8%D0%B8/id6739352201" },
+      { name: "RuStore", href: "https://www.rustore.ru/catalog/app/ru.rushydro.car" },
+      { name: "AppGallery", href: "https://appgallery.huawei.com/app/C112693685" },
+    ];
+
+    function HowToCharge() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="drivers" className="py-20" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16">
+              {/* Steps */}
+              <div>
+                <motion.h2
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  className="font-display font-bold text-2xl sm:text-3xl mb-8 dark:text-white text-rh-heading"
+                >
+                  Как зарядиться
+                </motion.h2>
+
+                <div className="space-y-3">
+                  {steps.map((step, i) => {
+                    const Icon = step.icon;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={inView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ delay: i * 0.06 }}
+                        className="flex items-center gap-4 p-4 rounded-xl transition-colors
+                          dark:hover:bg-white/5 hover:bg-gray-50"
+                      >
+                        <div className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center
+                          dark:bg-white/5 bg-rh-blue/5">
+                          <Icon className="w-5 h-5 dark:text-blue-400 text-rh-blue" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold mr-2 dark:text-gray-500 text-rh-muted">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span className="font-semibold text-sm dark:text-white text-rh-heading">
+                            {step.title}
+                          </span>
+                          <span className="text-sm ml-1 dark:text-gray-400 text-rh-body">
+                            — {step.desc}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* App + tariffs */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.2 }}
+                className="lg:sticky lg:top-28 self-start"
+              >
+                <div className="rounded-2xl p-8 dark:bg-dark-card bg-gray-50 border dark:border-dark-border border-gray-100">
+                  <h3 className="font-display font-bold text-xl mb-2 dark:text-white text-rh-heading">
+                    Мобильное приложение
+                  </h3>
+                  <p className="text-sm mb-8 dark:text-gray-400 text-rh-body leading-relaxed">
+                    Находите станции, оплачивайте зарядку, отслеживайте историю и баллы Электроклуба.
+                  </p>
+
+                  {/* Tariffs */}
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    {[
+                      { price: "15", label: "быстрая зарядка" },
+                      { price: "13", label: "медленная зарядка" },
+                    ].map((t) => (
+                      <div key={t.label} className="rounded-xl p-4 text-center
+                        dark:bg-dark-surface bg-white border dark:border-dark-border border-gray-100">
+                        <div className="font-display font-bold text-2xl dark:text-white text-rh-blue">
+                          {t.price}
+                        </div>
+                        <div className="text-xs dark:text-gray-500 text-rh-muted">{"руб/кВт\u00B7ч"}</div>
+                        <div className="text-xs mt-1 dark:text-gray-500 text-rh-muted">{t.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Store buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {stores.map((s) => (
+                      <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-center px-4 py-3 rounded-xl
+                          text-sm font-medium transition-colors
+                          dark:bg-dark-surface dark:border-dark-border dark:text-white dark:hover:bg-dark-border/50
+                          bg-white border border-gray-200 text-rh-heading hover:bg-gray-50">
+                        {s.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== Electroclub =====================
+    const levels = [
+      { name: "Старт", cashback: "3%", color: "dark:bg-gray-600 bg-gray-400" },
+      { name: "Актив", cashback: "5%", color: "dark:bg-blue-500 bg-rh-blue" },
+      { name: "Премиум", cashback: "7%", color: "dark:bg-amber-500 bg-rh-orange" },
+      { name: "VIP", cashback: "10%", color: "dark:bg-emerald-500 bg-emerald-600" },
+    ];
+
+    function Electroclub() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="electroclub" className="py-20 dark:bg-dark-card/50 bg-gray-50" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              {/* Left */}
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                >
+                  <p className="text-sm font-semibold uppercase tracking-wider mb-3
+                    text-rh-orange dark:text-amber-400">Программа лояльности</p>
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl mb-4
+                    dark:text-white text-rh-heading">
+                    Электроклуб
+                  </h2>
+                  <p className="text-base leading-relaxed mb-8 dark:text-gray-400 text-rh-body max-w-lg">
+                    Копите баллы за каждую зарядку и заправку. Тратьте у партнёров —
+                    рестораны, магазины, сервис. Чем больше заряжаете, тем выше кешбэк.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.15 }}
+                  className="flex flex-wrap gap-3 mb-10"
+                >
+                  <a href="#" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                    bg-rh-orange text-white font-semibold text-sm hover:bg-rh-orange/90 transition-colors">
+                    Вступить в клуб
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                  <a href="#" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                    font-semibold text-sm transition-colors
+                    dark:text-white dark:border-dark-border dark:hover:bg-white/5
+                    text-rh-heading border border-gray-200 hover:bg-gray-50">
+                    Подробнее
+                  </a>
+                </motion.div>
+
+                {/* Features */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.25 }}
+                  className="grid grid-cols-3 gap-4"
+                >
+                  {[
+                    { icon: Gift, label: "Баллы за зарядку и заправку" },
+                    { icon: TrendingUp, label: "Кешбэк до 10%" },
+                    { icon: Users, label: "Партнёрская сеть" },
+                  ].map((f, i) => {
+                    const Icon = f.icon;
+                    return (
+                      <div key={i} className="text-center">
+                        <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center
+                          dark:bg-white/5 bg-rh-orange/5">
+                          <Icon className="w-5 h-5 dark:text-amber-400 text-rh-orange" />
+                        </div>
+                        <div className="text-xs font-medium dark:text-gray-400 text-rh-body">{f.label}</div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+
+              {/* Right — levels */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="space-y-3">
+                  {levels.map((lvl, i) => (
+                    <div key={i} className="flex items-center gap-4 p-5 rounded-2xl transition-colors
+                      dark:bg-dark-surface dark:hover:bg-dark-border/50
+                      bg-white hover:bg-white shadow-sm dark:shadow-none border dark:border-dark-border border-gray-100">
+                      <div className={`w-3 h-3 rounded-full ${lvl.color}`} />
+                      <div className="flex-1">
+                        <div className="font-display font-semibold text-sm dark:text-white text-rh-heading">
+                          {lvl.name}
+                        </div>
+                      </div>
+                      <div className="font-display font-bold text-lg dark:text-white text-rh-blue">
+                        {lvl.cashback}
+                      </div>
+                      <div className="text-xs dark:text-gray-500 text-rh-muted">кешбэк</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== Corporate =====================
+    const corpFeatures = [
+      { icon: FileText, title: "Работаем по 223-ФЗ" },
+      { icon: CreditCard, title: "Корпоративные тарифы" },
+      { icon: Building2, title: "RFID-карты для сотрудников" },
+      { icon: Headphones, title: "Персональный менеджер" },
+    ];
+
+    function Corporate() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="corporate" className="py-20" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="rounded-2xl p-8 sm:p-12
+              dark:bg-dark-card border dark:border-dark-border
+              bg-white border-gray-100 shadow-sm dark:shadow-none">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                >
+                  <p className="text-sm font-semibold uppercase tracking-wider mb-3
+                    dark:text-blue-400 text-rh-blue">Для бизнеса</p>
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl mb-4
+                    dark:text-white text-rh-heading">
+                    Корпоративным клиентам
+                  </h2>
+                  <p className="text-base leading-relaxed mb-8 dark:text-gray-400 text-rh-body max-w-lg">
+                    Зарядка автопарка, RFID-карты, детальная отчётность, интеграция с 1С.
+                    Индивидуальные тарифы для каршеринга и логистики.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <a href="#contacts" className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                      bg-rh-blue text-white font-semibold text-sm hover:bg-rh-blue-light transition-colors">
+                      Стать клиентом
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </a>
+                    <a href="#" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                      font-semibold text-sm transition-colors
+                      dark:text-white dark:border-dark-border dark:hover:bg-white/5
+                      text-rh-heading border border-gray-200 hover:bg-gray-50">
+                      Скачать КП
+                    </a>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.15 }}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  {corpFeatures.map((f, i) => {
+                    const Icon = f.icon;
+                    return (
+                      <div key={i} className="flex items-center gap-3 p-4 rounded-xl
+                        dark:bg-dark-surface bg-gray-50">
+                        <Icon className="w-5 h-5 flex-shrink-0 dark:text-blue-400 text-rh-blue" />
+                        <span className="text-sm font-medium dark:text-white text-rh-heading">
+                          {f.title}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== Partners =====================
+    const partnerItems = [
+      { icon: MapPinPlus, title: "Предложить место", desc: "Площадка для установки ЭЗС" },
+      { icon: Fuel, title: "Топливным сетям", desc: "Интеграция АЗС в единую карту" },
+      { icon: Wrench, title: "Подрядчикам", desc: "Сервис, строительство, проектирование" },
+      { icon: BarChart3, title: "Инвесторам", desc: "Отчётность, собрания акционеров" },
+    ];
+
+    function Partners() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="partners" className="py-20 dark:bg-dark-card/50 bg-gray-50" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              className="font-display font-bold text-2xl sm:text-3xl mb-3 dark:text-white text-rh-heading"
+            >
+              Партнёрам
+            </motion.h2>
+            <p className="mb-10 dark:text-gray-400 text-rh-body max-w-xl">
+              Развивайте зарядную и топливную инфраструктуру вместе с крупнейшим энергетическим холдингом
+            </p>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {partnerItems.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <motion.a
+                    key={i}
+                    href="#contacts"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: i * 0.08 }}
+                    className="group p-6 rounded-2xl transition-colors
+                      dark:bg-dark-surface dark:hover:bg-dark-border/50
+                      bg-white hover:bg-white shadow-sm dark:shadow-none"
+                  >
+                    <Icon className="w-6 h-6 mb-4 dark:text-blue-400 text-rh-blue" />
+                    <h3 className="font-display font-semibold text-base mb-1
+                      dark:text-white text-rh-heading">{item.title}</h3>
+                    <p className="text-sm mb-4 dark:text-gray-400 text-rh-body">{item.desc}</p>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium
+                      dark:text-blue-400 text-rh-blue group-hover:gap-2 transition-all">
+                      Подробнее <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </motion.a>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== News =====================
+    const newsItems = [
+      { date: "18.11.2025", title: "Переход на новое приложение", desc: "Поэтапный переход 42 регионов до 31.12.2025.", tag: "Приложение" },
+      { date: "01.11.2025", title: "Новое мобильное приложение", desc: "Доступно в Google Play, App Store, RuStore и AppGallery.", tag: "Релиз" },
+      { date: "01.04.2024", title: "Новый генеральный директор", desc: "Чурилов Леонид Иванович назначен генеральным директором.", tag: "Компания" },
+      { date: "15.08.2022", title: "Обновление тарифов", desc: "Быстрая зарядка — 15 руб/кВт\u00B7ч, медленная — 13 руб/кВт\u00B7ч.", tag: "Тарифы" },
+    ];
+
+    function NewsSection() {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-80px" });
+
+      return (
+        <section id="news" className="py-20" ref={ref}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-end justify-between mb-10">
+              <motion.h2
+                initial={{ opacity: 0, y: 16 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                className="font-display font-bold text-2xl sm:text-3xl dark:text-white text-rh-heading"
+              >
+                Новости
+              </motion.h2>
+              <a href="#" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium
+                dark:text-blue-400 text-rh-blue hover:gap-2.5 transition-all">
+                Все новости <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {newsItems.map((item, i) => (
+                <motion.article
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: i * 0.08 }}
+                  className="group p-5 rounded-2xl transition-colors cursor-pointer
+                    dark:bg-dark-card dark:hover:bg-dark-surface dark:border-dark-border
+                    bg-white hover:bg-gray-50 border border-gray-100 shadow-sm dark:shadow-none"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-md
+                      dark:bg-white/5 dark:text-gray-400
+                      bg-gray-100 text-rh-muted">{item.tag}</span>
+                    <span className="text-xs dark:text-gray-500 text-rh-muted">{item.date}</span>
+                  </div>
+                  <h3 className="font-semibold text-[15px] mb-2 leading-snug
+                    dark:text-white text-rh-heading
+                    group-hover:text-rh-blue dark:group-hover:text-blue-400 transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed dark:text-gray-400 text-rh-body">
+                    {item.desc}
+                  </p>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ===================== Footer =====================
+    const footerLinks = {
+      "Станции": ["Карта ЭЗС", "Карта АЗС-партнёров", "Тарифы"],
+      "Автомобилистам": ["Как зарядиться", "Приложение", "Электроклуб", "Документы"],
+      "Бизнесу": ["Корпоративным", "Франшиза", "Партнёрам", "Инвесторам"],
+      "Поддержка": ["FAQ", "Контакт-центр", "Telegram-бот", "Конфиденциальность"],
+    };
+
+    function Footer() {
+      return (
+        <footer id="contacts" className="border-t dark:border-dark-border border-gray-200
+          dark:bg-dark-bg bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+
+            {/* Contacts row */}
+            <div className="py-10 grid sm:grid-cols-3 gap-6 border-b dark:border-dark-border border-gray-100">
+              {[
+                { icon: Phone, label: "Горячая линия", value: "8 (800) 222-18-32", href: "tel:88002221832" },
+                { icon: Mail, label: "Email", value: "ezs@rushydro.ru", href: "mailto:ezs@rushydro.ru" },
+                { icon: MessageCircle, label: "Telegram", value: "@ezsrushydro", href: "https://t.me/ezsrushydro" },
+              ].map((c, i) => {
+                const Icon = c.icon;
+                return (
+                  <a key={i} href={c.href} className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center
+                      dark:bg-white/5 bg-gray-50 group-hover:bg-rh-blue/5 dark:group-hover:bg-white/10 transition-colors">
+                      <Icon className="w-[18px] h-[18px] dark:text-gray-400 text-rh-muted" />
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-gray-500 text-rh-muted">{c.label}</div>
+                      <div className="text-sm font-medium dark:text-white text-rh-heading">{c.value}</div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* Links */}
+            <div className="py-10 grid grid-cols-2 lg:grid-cols-5 gap-8">
+              <div className="col-span-2 lg:col-span-1">
+                <a href="/" className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-rh-blue flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-white" fill="currentColor" />
+                  </div>
+                  <span className="font-display font-bold text-sm dark:text-white text-rh-heading">
+                    ЭЗС РусГидро
+                  </span>
+                </a>
+                <p className="text-sm dark:text-gray-400 text-rh-body leading-relaxed">
+                  Федеральная сеть зарядных станций для электромобилей
+                </p>
+              </div>
+
+              {Object.entries(footerLinks).map(([title, items]) => (
+                <div key={title}>
+                  <h4 className="font-semibold text-sm mb-3 dark:text-white text-rh-heading">{title}</h4>
+                  <ul className="space-y-2">
+                    {items.map((l) => (
+                      <li key={l}>
+                        <a href="#" className="text-sm transition-colors
+                          dark:text-gray-400 dark:hover:text-white
+                          text-rh-body hover:text-rh-blue">{l}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom */}
+            <div className="py-6 border-t dark:border-dark-border border-gray-100
+              text-sm dark:text-gray-500 text-rh-muted">
+              &copy; ПАО &laquo;РусГидро&raquo; 2006&ndash;2026
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    // ===================== App =====================
+    function App() {
+      return (
+        <ThemeProvider>
+          <Header />
+          <main>
+            <Hero />
+            <Advantages />
+            <StationMap />
+            <HowToCharge />
+            <Electroclub />
+            <Corporate />
+            <Partners />
+            <NewsSection />
+          </main>
+          <Footer />
+        </ThemeProvider>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

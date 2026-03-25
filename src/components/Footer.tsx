@@ -1,5 +1,6 @@
 "use client";
 import { Globe, Mail, Share2 } from "lucide-react";
+import Logo from "./Logo";
 
 const links = {
   "Станции": ["Поиск станций", "Экология", "Партнёрство"],
@@ -13,9 +14,8 @@ export default function Footer() {
       <div className="max-w-screen-2xl mx-auto px-10 sm:px-12 py-14
         grid grid-cols-1 md:grid-cols-2 gap-14">
         <div className="space-y-6">
-          <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo.svg" alt="РусГидро" className="h-11 w-11" />
+          <div className="flex items-center gap-1">
+            <Logo className="h-10 w-auto" />
             <span className="text-lg font-bold font-headline dark:text-white text-primary">
               РусГидро
             </span>

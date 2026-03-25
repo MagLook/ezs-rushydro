@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 const nav = [
   { label: "Сеть", href: "#map" },
@@ -21,10 +22,9 @@ export default function Header() {
       bg-white dark:bg-dark-bg border-b border-outline-variant/10 dark:border-dark-border">
       <div className="flex justify-between items-center px-8 py-4 max-w-screen-2xl mx-auto">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.svg" alt="ЭЗС РусГидро" className="h-14" />
-          <span className="text-[1.6rem] font-extrabold tracking-tight font-headline
+        <a href="/" className="flex items-center gap-1">
+          <Logo className="h-12 w-auto" />
+          <span className="text-[1.5rem] font-extrabold tracking-tight font-headline
             dark:text-white text-primary">РусГидро</span>
         </a>
 
