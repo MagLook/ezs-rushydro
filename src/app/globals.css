@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700;800;900&family=Onest:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-headline: "Unbounded", cursive;
+  --font-body: "Onest", sans-serif;
+
+  /* Surface system (light) */
+  --color-surface: #f9f9ff;
+  --color-surface-dim: #cfdbf2;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eeff;
+  --color-surface-container-high: #dde9ff;
+  --color-surface-container-highest: #d7e3fb;
+  --color-surface-variant: #d7e3fb;
+
+  /* Brand */
+  --color-primary: #00366f;
+  --color-primary-container: #1e4d8c;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #9cc0ff;
+  --color-secondary: #00629f;
+  --color-secondary-container: #40a9ff;
+  --color-on-secondary-container: #003c64;
+  --color-tertiary: #542d00;
+  --color-tertiary-fixed-dim: #ffb875;
+
+  /* Text */
+  --color-on-surface: #101c2d;
+  --color-on-surface-variant: #434750;
+  --color-on-background: #101c2d;
+
+  /* System */
+  --color-outline: #737781;
+  --color-outline-variant: #c3c6d2;
+  --color-inverse-surface: #253143;
+  --color-inverse-on-surface: #ebf1ff;
+
+  /* Dark theme surfaces */
+  --color-dark-bg: #0B1120;
+  --color-dark-card: #131D2E;
+  --color-dark-surface: #1A2638;
+  --color-dark-border: #263548;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgba(0, 98, 159, 0.25); color: white; }
+}
+
+@layer components {
+  .kinetic-gradient {
+    background: linear-gradient(135deg, #1e4d8c 0%, #00629f 100%);
+  }
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .shadow-ambient {
+    box-shadow: 0 12px 40px rgba(0, 54, 111, 0.06);
+  }
+  .ghost-border {
+    border: 1px solid rgba(195, 198, 210, 0.15);
+  }
+}
+
+/* Dark overrides */
+.dark .glass-nav {
+  background: rgba(11, 17, 32, 0.75);
+}
+.dark .kinetic-gradient {
+  background: linear-gradient(135deg, #2B6CB0 0%, #3B82F6 100%);
+}
